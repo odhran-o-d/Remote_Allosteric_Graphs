@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 
 def main(model, optimiser, train_data, val_data, epochs, batches):
     mean_reciporical_rank = 0
+    model_count = 0
     break_condition = False
     for epoch in range(epochs):
         # training stage
@@ -51,27 +52,48 @@ def main(model, optimiser, train_data, val_data, epochs, batches):
 
             print(total_sum_reciporical_rank / len(val_data))
             MRR = total_sum_reciporical_rank / len(val_data)
-            if MRR < (mean_reciporical_rank * 1.05):
-                torch.save(
-                    model,
-                    "Model_{model}_Epoch_{epoch}_MRR_{MRR}.pickle".format(
-                        model=args.model, epoch=epoch, MRR=MRR
-                    ),
-                )
-                break_condition = True
-            else:
+            # if MRR < (mean_reciporical_rank * 1.05):
+            #     torch.save(
+            #         model,
+            #         "Model_{model}_Epoch_{epoch}_MRR_{MRR}.pickle".format(
+            #             model=args.model, epoch=epoch, MRR=MRR
+            #         ),
+            #     )
+            #     break_condition = True
+            # else:
+            #     mean_reciporical_rank = MRR
+            if MRR > mean_reciporical_rank:
                 mean_reciporical_rank = MRR
+                model_count = 0
+                print('model count is...')
+                print(model_count)
+            else:
+                model_count += 1
+                print('model count is...')
+                print(model_count)
 
-        if epoch % 399 == 0:
+
+        if model_count == 5:
             torch.save(
                 model,
-                "Model_{model}_Epoch_Final_MRR_{MRR}.pickle".format(
-                    model=args.model, MRR=MRR
+                "Model_{model}_Epoch_{epoch}_MRR_{MRR}.pickle".format(
+                    model=args.model, epoch=epoch, MRR=MRR
                 ),
             )
+            break_condition = True
+
 
         if break_condition == True:
             break
+
+
+    if break_condition == False:
+        torch.save(
+            model,
+            "Model_{model}_Epoch_Final_MRR_{MRR}.pickle".format(
+                model=args.model, MRR=MRR
+            ),
+        )
 
 
 if __name__ == "__main__":
@@ -87,8 +109,8 @@ if __name__ == "__main__":
         type=int,
         help="this is the dimensionality of the embeddings",
     )
-    parser.add_argument("--epochs", default=100, type=int)
-    parser.add_argument("--batches", default=100, type=int)
+    parser.add_argument("--epochs", default=400, type=int)
+    parser.add_argument("--batches", default=200, type=int)
     parser.add_argument("--lr", default=0.01, type=float)
 
     args = parser.parse_args()
